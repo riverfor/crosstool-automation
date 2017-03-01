@@ -5,12 +5,14 @@ import argparse
 import os
 import os.path
 import sys
-if sys.version_info.major < 3:
+if sys.version_info[0] < 3:
     import ConfigParser as configparser
 else:
     import configparser
 import subprocess
 import multiprocessing
+import shutil
+
 
 CTNG_URL = 'https://github.com/vmurashev/crosstool-ng.git'
 DIR_ROOT = os.path.normpath(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -51,6 +53,8 @@ def touch_file(fname):
 
 
 def ctng_bootstrap():
+    if os.path.isdir(DIR_CTNG):
+        shutil.rmtree(DIR_CTNG)
     mkdir_safe(DIR_CTNG)
     print ("> Clone '{0}' in '{1}'".format(CTNG_URL, DIR_CTNG))
     subprocess.check_call(["git", "clone", CTNG_URL, "."], cwd=DIR_CTNG)
@@ -114,7 +118,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     config_file = args.config[0]
     if not os.path.isfile(config_file):
-        print("ERROR: File not found - '{}'".format(config_file))
+        print("ERROR: File not found - '{0}'".format(config_file))
         exit(1)
 
     mkdir_safe(os.path.join(DIR_OUTPUT))
