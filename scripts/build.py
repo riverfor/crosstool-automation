@@ -72,35 +72,39 @@ def build_toolchain(ct_config):
     mkdir_safe(dir_obj)
     mkdir_safe(DIR_TARBALLS)
 
-    with open(defcfg_template, mode='wt') as fh:
-        ct_options = ct_config.options(TAG_INI_SECTION_CTNG)
-        for ct_opt_name in ct_options:
-            ct_opt_value = get_ini_conf_string1(ct_config, TAG_INI_SECTION_CTNG,ct_opt_name)
-            print("{0}={1}".format(ct_opt_name, ct_opt_value), file=fh)
-        print('CT_PREFIX_DIR="{0}"'.format(dir_prefix), file=fh)
-        print('CT_LOCAL_TARBALLS_DIR="{0}"'.format(DIR_TARBALLS), file=fh)
+    build_stamp_file = os.path.join(DIR_OUTPUT, '{0}.stamp'.format(toolchain_name))
 
-    print ("> Generate config for '{0}'".format(toolchain_name))
-    custom_env = {}
-    custom_env.update(os.environ)
-    custom_env['DEFCONFIG'] = defcfg_template
-    subprocess.check_call([ctng_tool, 'defconfig'], cwd=dir_obj, env=custom_env)
+    if not os.path.isfile(build_stamp_file):
+        with open(defcfg_template, mode='wt') as fh:
+            ct_options = ct_config.options(TAG_INI_SECTION_CTNG)
+            for ct_opt_name in ct_options:
+                ct_opt_value = get_ini_conf_string1(ct_config, TAG_INI_SECTION_CTNG,ct_opt_name)
+                print("{0}={1}".format(ct_opt_name, ct_opt_value), file=fh)
+            print('CT_PREFIX_DIR="{0}"'.format(dir_prefix), file=fh)
+            print('CT_LOCAL_TARBALLS_DIR="{0}"'.format(DIR_TARBALLS), file=fh)
 
-    print ("> Running build for '{0}'".format(toolchain_name))
-    cpu_count = multiprocessing.cpu_count()
-    subprocess.check_call([ctng_tool, 'build.{0}'.format(cpu_count)], cwd=dir_obj)
-    subprocess.check_call(['chmod', '-R', 'u+w', dir_prefix])
+        print ("> Generate config for '{0}'".format(toolchain_name))
+        custom_env = {}
+        custom_env.update(os.environ)
+        custom_env['DEFCONFIG'] = defcfg_template
+        subprocess.check_call([ctng_tool, 'defconfig'], cwd=dir_obj, env=custom_env)
 
-    items_to_remove = [ os.path.join(dir_prefix, 'build.log.bz2') ]
-    for rm_item in items_to_remove:
-        if os.path.isfile(rm_item):
-            os.remove(rm_item)
+        print ("> Running build for '{0}'".format(toolchain_name))
+        cpu_count = multiprocessing.cpu_count()
+        subprocess.check_call([ctng_tool, 'build.{0}'.format(cpu_count)], cwd=dir_obj)
+        subprocess.check_call(['chmod', '-R', 'u+w', dir_prefix])
+
+        items_to_remove = [ os.path.join(dir_prefix, 'build.log.bz2') ]
+        for rm_item in items_to_remove:
+            if os.path.isfile(rm_item):
+                os.remove(rm_item)
+
+        touch_file(build_stamp_file)
 
     toolchain_tgz = os.path.join(DIR_OUTPUT, '{0}.tgz'.format(toolchain_name))
     print ("> Packaging in '{0}'".format(toolchain_tgz))
-    tar_argv = ['tar', '-czf', toolchain_tgz]
-    tar_argv.extend(os.listdir(dir_prefix))
-    subprocess.check_call(tar_argv, cwd=dir_prefix)
+    tar_argv = ['tar', '-czf', toolchain_tgz, '--owner=0', '--group=0', os.path.basename(dir_prefix) ]
+    subprocess.check_call(tar_argv, cwd=os.path.dirname(dir_prefix))
 
 
 
