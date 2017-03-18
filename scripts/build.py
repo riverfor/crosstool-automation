@@ -14,7 +14,8 @@ import multiprocessing
 import shutil
 
 
-CTNG_URL = 'https://github.com/vmurashev/crosstool-ng.git'
+CTNG_URL = 'https://github.com/crosstool-ng/crosstool-ng.git'
+
 DIR_ROOT = os.path.normpath(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 DIR_OUTPUT = os.path.join(DIR_ROOT, 'output')
 DIR_CTNG = os.path.join(DIR_ROOT, 'ctng')
@@ -117,7 +118,11 @@ if __name__ == '__main__':
     parser.add_argument('--config', nargs=1, required=True)
     args = parser.parse_args()
     config_file = args.config[0]
-    if not os.path.isfile(config_file):
+    init_only = False
+    if config_file == '-':
+        init_only = True
+
+    if not init_only and not os.path.isfile(config_file):
         print("ERROR: File not found - '{0}'".format(config_file))
         exit(1)
 
@@ -126,6 +131,9 @@ if __name__ == '__main__':
     if not os.path.isfile(ctng_stamp):
         ctng_bootstrap()
         touch_file(ctng_stamp)
+
+    if init_only:
+        exit(0)
 
     ct_config = load_ini_config(config_file)
     toolchain_name = get_ini_conf_string1(ct_config, TAG_INI_SECTION_CONFIG, TAG_INI_TOOLCHAIN_NAME)
