@@ -15,7 +15,7 @@ import shutil
 
 
 CTNG_URL = 'https://github.com/crosstool-ng/crosstool-ng.git'
-CTNG_TAG = 'crosstool-ng-1.23.0-rc2'
+CTNG_TAG = 'crosstool-ng-1.23.0'
 
 DIR_ROOT = os.path.normpath(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 DIR_OUTPUT = os.path.join(DIR_ROOT, 'output')
@@ -61,7 +61,7 @@ def ctng_bootstrap():
     print ("> Clone '{0}' in '{1}'".format(CTNG_URL, DIR_CTNG))
     subprocess.check_call(["git", "clone", CTNG_URL, "."], cwd=DIR_CTNG)
     print ("> Switch on tag '{0}' in '{1}'".format(CTNG_TAG, DIR_CTNG))
-    subprocess.check_call(["git", "checkout", 'tags/{}'.format(CTNG_TAG)], cwd=DIR_CTNG)
+    subprocess.check_call(["git", "checkout", 'tags/{0}'.format(CTNG_TAG)], cwd=DIR_CTNG)
     print ("> CTNG BOOTSTRAP")
     subprocess.check_call([os.path.join(DIR_CTNG, 'bootstrap')], cwd=DIR_CTNG)
     print ("> CTNG CONFIGURE")
